@@ -2,10 +2,12 @@ import pandas as pd
 import sys
 print (sys.version)
 import got3 as got
+import os
+import datetime
 
-def main():
 
-    
+def get_tweets(movie_name,start_date,end_date,max_tweets=10):
+    print(movie_name,start_date,end_date)
     def printTweet(descr, t):
         print(descr)
         print("Username: %s" % t.username)
@@ -14,22 +16,25 @@ def main():
         print("Mentions: %s" % t.mentions)
         print("Hashtags: %s\n" % t.hashtags)
 
-    # Example 1 - Get tweets by username
-    #tweetCriteria = got.manager.TweetCriteria().setQuerySearch('europe refugees').setSince("2015-05-01").setUntil("2015-09-30").setMaxTweets(10000)
-    #tweetCriteria = got.manager.TweetCriteria().setUsername('barackobama').setMaxTweets(1)
-    tweetCriteria = got.manager.TweetCriteria().setQuerySearch("avengers").setSince("2017-07-28").setUntil("2017-12-02").setMaxTweets(1000).setLang("en")
-    #tweetCriteria.setQuerySearch('atomic blonde')
-    #tweetCriteria.setSince("2017-07-28")
-    #tweetCriteria.setUntil("2017-08-07")
-    #tweetCriteria.setMaxTweets(1000)
-    #tweetCriteria.setLang("en")
+    #
+    #     # Example 1 - Get tweets by username
+    #     #tweetCriteria = got.manager.TweetCriteria().setQuerySearch('europe refugees').setSince("2015-05-01").setUntil("2015-09-30").setMaxTweets(10000)
+    #     #tweetCriteria = got.manager.TweetCriteria().setUsername('barackobama').setMaxTweets(1)
+    # tweetCriteria = got.manager.TweetCriteria().setQuerySearch("avengers").setSince("2012-05-04").setUntil("2012-05-11").setMaxTweets(10).setLang("en")
+    tweetCriteria = got.manager.TweetCriteria().setQuerySearch(movie_name).setSince(start_date).setUntil(end_date).setMaxTweets(max_tweets).setLang("en")
+    # #tweetCriteria.setQuerySearch('atomic blonde')
+    # #tweetCriteria.setSince("2017-07-28")
+    # #tweetCriteria.setUntil("2017-08-07")
+    # #tweetCriteria.setMaxTweets(1000)
+    # #tweetCriteria.setLang("en")
     tweets = got.manager.TweetManager.getTweets(tweetCriteria)
-    print(len(tweets))
-
+    if not tweets:
+        print("No tweets found.You are BLOCKED!!!!")
+        return
+    #
     def change_text(text):
         return text
     for i in range(len(tweets)):
-        #print("in for")
         d = {'index':tweets[i].date, 'text':tweets[i].text, 'id':tweets[i].id, 'username':tweets[i].username,
              'retweets':tweets[i].retweets, 'favorites':tweets[i].favorites,  'mentions':tweets[i].mentions,
              'hashtags':tweets[i].hashtags, 'geo':tweets[i].geo, 'permalink':tweets[i].permalink}
@@ -38,31 +43,39 @@ def main():
             df.apply(change_text,axis=1)
             df.index = df['index']
             df = df.drop('index', axis=1)
-            #print("there")
         else:
             df2 = pd.DataFrame.from_dict(d,orient='index').T
             df2.apply(change_text,axis=1)
             df2.index = df2['index']
             df2 = df2.drop('index', axis=1)
             df = df.append(df2)
-            #print("Here")
 
-    #with open('fateofthefurious.csv', 'a') as f:
-        #df.to_csv(f, header=True)
-    df.to_csv('test1.csv')
-    #df.head()
 
-    # Example 2 - Get tweets by query search
-    #tweetCriteria = got.manager.TweetCriteria().setQuerySearch('europe refugees').setSince("2015-05-01").setUntil("2015-09-30").setMaxTweets(1)
-    #tweet = got.manager.TweetManager.getTweets(tweetCriteria)[0]
+    movie_name= "_".join([val.lower() for val in movie_name.split()])
+    csv_location = os.path.join(os.getcwd(),"{0}.csv".format(movie_name))
+    print(csv_location)
+    df.to_csv(csv_location)
+    return csv_location
 
-    #printTweet("### Example 2 - Get tweets by query search [europe refugees]", tweet)
 
-    # Example 3 - Get tweets by username and bound dates
-    #tweetCriteria = got.manager.TweetCriteria().setUsername("barackobama").setSince("2015-09-10").setUntil("2015-09-12").setMaxTweets(1)
-    #tweet = got.manager.TweetManager.getTweets(tweetCriteria)[0]
+def read_file(file_name):
+    if not file_name:
+        return
+    with open(file_name,"r+") as movie_list:
+        for line in movie_list.readlines()[1:]:
+            line_list = line.split(",")
+            movie_name= line_list[1]
+            try:
+                start_date = datetime.datetime.strptime(line_list[2],"%m/%d/%Y")
+                end_date = start_date + datetime.timedelta(weeks=2)
+                start_date =  start_date.strftime("%Y-%m-%d")
+                end_date = end_date.strftime("%Y-%m-%d")
+                # print("Processing tweets for the movie {0}".format(movie_name))
+                get_tweets(movie_name=movie_name,start_date=start_date,end_date=end_date)
 
-    #printTweet("### Example 3 - Get tweets by username and bound dates [barackobama, '2015-09-10', '2015-09-12']", tweet)
+            except Exception as e:
+                print(e)
+                pass
+            # print("Processed the movie {0}".format(movie_name))
 
-if __name__ == '__main__':
-    main()
+read_file("movies_lists.csv")
