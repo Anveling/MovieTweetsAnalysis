@@ -1,6 +1,5 @@
 import pandas as pd
 import sys
-print (sys.version)
 import got3 as got
 import os
 import datetime
@@ -59,23 +58,26 @@ def get_tweets(movie_name,start_date,end_date,max_tweets=10):
 
 
 def read_file(file_name):
+    print(1)
     if not file_name:
         return
     with open(file_name,"r+") as movie_list:
-        for line in movie_list.readlines()[1:]:
-            line_list = line.split(",")
+        for line in movie_list.readlines()[2:]:
+            print(line)
+            line_list = line.split("\t")
+            print(line_list)
             movie_name= line_list[1]
             try:
                 start_date = datetime.datetime.strptime(line_list[2],"%m/%d/%Y")
                 end_date = start_date + datetime.timedelta(weeks=2)
                 start_date =  start_date.strftime("%Y-%m-%d")
                 end_date = end_date.strftime("%Y-%m-%d")
-                # print("Processing tweets for the movie {0}".format(movie_name))
+                print("Processing tweets for the movie {0}".format(movie_name))
                 get_tweets(movie_name=movie_name,start_date=start_date,end_date=end_date)
 
             except Exception as e:
                 print(e)
                 pass
-            # print("Processed the movie {0}".format(movie_name))
+            print("Processed the movie {0}".format(movie_name))
 
 read_file("movies_lists.csv")
