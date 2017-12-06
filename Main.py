@@ -5,7 +5,7 @@ import os
 import datetime
 
 
-def get_tweets(movie_name,start_date,end_date,max_tweets=10):
+def get_tweets(movie_name,start_date,end_date,max_tweets=5000):
     print(movie_name,start_date,end_date)
     def printTweet(descr, t):
         print(descr)
@@ -54,6 +54,7 @@ def get_tweets(movie_name,start_date,end_date,max_tweets=10):
     csv_location = os.path.join(os.getcwd(),"{0}.csv".format(movie_name))
     print(csv_location)
     df.to_csv(csv_location)
+    #movies.append(movie_name)
     return csv_location
 
 
@@ -61,6 +62,8 @@ def read_file(file_name):
     print(1)
     if not file_name:
         return
+    #movies = []
+    #movies1 = []
     with open(file_name,"r+") as movie_list:
         for line in movie_list.readlines()[2:]:
             print(line)
@@ -68,6 +71,7 @@ def read_file(file_name):
             print(line_list)
             movie_name= line_list[1]
             try:
+                #movies1.append(movie_name)
                 start_date = datetime.datetime.strptime(line_list[2],"%m/%d/%Y")
                 end_date = start_date + datetime.timedelta(weeks=2)
                 start_date =  start_date.strftime("%Y-%m-%d")
@@ -77,7 +81,7 @@ def read_file(file_name):
 
             except Exception as e:
                 print(e)
-                pass
+                print(movie_name,"This movie fucked up!")
             print("Processed the movie {0}".format(movie_name))
 
 read_file("movies_lists.csv")
